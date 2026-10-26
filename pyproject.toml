@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reliable"
+version = "0.1.0"
+description = "Reliable LLM/Agent calls: timeout + exponential backoff + sliding-window circuit breaker, with retry-storm protection as a first-class citizen."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Hou Congcong" }]
+keywords = ["llm", "retry", "circuit-breaker", "resilience", "agent"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
