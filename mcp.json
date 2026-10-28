@@ -1,0 +1,15 @@
+{
+  "name": "reliable",
+  "version": "0.1.0",
+  "description": "Resilient LLM/Agent calls over MCP: named circuit breakers, timeout+backoff HTTP calls, retry-storm guard by default.",
+  "transport": "stdio",
+  "command": "reliable-mcp",
+  "args": [],
+  "env": {},
+  "tools": [
+    "create_breaker",
+    "reliable_http_call",
+    "get_breaker_state",
+    "compute_backoff"
+  ]
+}

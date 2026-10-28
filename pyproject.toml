@@ -14,3 +14,9 @@ keywords = ["llm", "retry", "circuit-breaker", "resilience", "agent"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2.0"]
+
+[project.scripts]
+reliable-mcp = "reliable.mcp:main"

@@ -101,11 +101,36 @@ python3 -m unittest discover -s tests
 
 ## 路线图
 
-- [ ] **W2**：包成 MCP server，投 mcp.so / Smithery
+- [x] **W2**：包成 MCP server，投 mcp.so / Smithery（见下）
 - [ ] asyncio 原生版（真取消，不放弃等待）
 - [ ] TypeScript 版（同 API 语义）
 - [ ] 指标导出：每次调用的耗时 / 尝试次数 / 熔断状态变化（可观测性对接）
 - [ ] 预算熔断（token / 成本上限，共享同一熔断内核）
+
+## MCP Server（W2）
+
+把库里的容错原语暴露成 LLM Agent 可直接调用的 MCP 工具，适合"Agent 要调很多 LLM/HTTP 下游、又不想自己重写熔断"的场景。
+
+**提供的 surface：**
+- 工具 `create_breaker`：给每个下游依赖（如某 LLM provider）建一个命名熔断器。
+- 工具 `reliable_http_call`：通过命名熔断器发起带超时 / 退避 / 降级的 HTTP 调用；熔断 OPEN 时直接短路返回 `fallback`，不再打下游（重试风暴防护）。
+- 工具 `get_breaker_state` / `compute_backoff`：查状态、预览退避节奏。
+- 资源 `reliable://breaker/{name}`：熔断器的实时 stats。
+- 提示 `diagnose_breaker`：根据状态生成健康诊断 prompt。
+
+**运行（stdio，供 Claude Desktop / mcp.so / Smithery 接入）：**
+
+```bash
+pip install -e ".[mcp]"
+python -m reliable.mcp          # 或安装后直接用 reliable-mcp
+```
+
+**接入 mcp.so / Smithery：**
+1. 在仓库根加 `mcp.json`（声明 `reliable-mcp` 启动命令与 stdio transport）。
+2. 推到 GitHub 后，在 mcp.so 或 Smithery 用仓库 URL 一键上架。
+3. 上架文案主打一句话差异点：**"给 Agent 的每次下游调用默认带上重试风暴防护，而不是裸 retry。"**
+
+> 状态保存在 server 进程内的 `_BREAKERS` 字典（单实例、线程安全由 `CircuitBreaker` 保证）。多副本需要共享状态时，把 `_BREAKERS` 换成 Redis/etcd 后端即可——和 Armada 里"故障库可插拔存储"同构。
 
 ## License
 

@@ -122,3 +122,26 @@ class CircuitBreaker:
         self._state = State.OPEN
         self._opened_at = self._clock()
         self._half_open_results = []
+
+    def stats(self) -> dict:
+        """返回当前状态与窗口统计，便于观测/接入 MCP 资源。
+
+        返回字段：state（closed/open/half_open）、failure_rate_threshold、
+        window、window_total、window_failures、window_failure_rate、
+        cooldown、probe、opened_at。
+        """
+        with self._lock:
+            results = list(self._results)
+            total = len(results)
+            failures = results.count(False) if total else 0
+            return {
+                "state": self._state.value,
+                "failure_rate_threshold": self.failure_rate,
+                "window": self.window,
+                "window_total": total,
+                "window_failures": failures,
+                "window_failure_rate": (failures / total) if total else 0.0,
+                "cooldown": self.cooldown,
+                "probe": self.probe,
+                "opened_at": self._opened_at,
+            }
