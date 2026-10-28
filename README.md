@@ -1,8 +1,28 @@
 # reliable
 
+> Python resilience for LLM/Agent calls — timeout + jitter backoff + sliding-window circuit breaker + fallback. Built to stop retry storms.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
+[![Status](https://img.shields.io/badge/status-v0.1--alpha-orange.svg)](https://github.com/GravityWell8/reliable)
+
 **给谁**：调 LLM/Agent API 的 Python 开发者。
 **解决什么**：超时、限流、偶发 5xx 把 Agent 搞挂；naive retry 引发重试风暴；下游已经瘫了还在持续被打。
 **怎么用**：一个装饰器，把任意同步函数包上超时 + 指数退避 + 滑动窗口熔断 + 降级回调。
+
+## 安装
+
+```bash
+# 方式一：可编辑安装（推荐，装完任意位置都能 import）
+pip install -e .
+python3 examples/demo.py
+python3 -m unittest discover -s tests
+
+# 方式二：不安装，直接用 PYTHONPATH 指向 src（从仓库根目录运行）
+PYTHONPATH=src python3 examples/demo.py
+```
+
+> 暂未发布到 PyPI；`pip install reliable` 会装到同名其他包，请勿使用。
 
 ## 快速开始
 
@@ -28,16 +48,18 @@ def call_llm(prompt: str) -> str:
     ...
 ```
 
-跑 demo（完整状态机流转，约 4 秒）::
+跑 demo（完整状态机流转，约 4 秒）：
 
 ```bash
-cd reliable && PYTHONPATH=src python3 examples/demo.py
+python3 examples/demo.py          # 已 pip install -e . 时
+# 或 PYTHONPATH=src python3 examples/demo.py
 ```
 
-跑测试（19 个用例，时钟/sleep 全注入，零真实等待）::
+跑测试（19 个用例，时钟/sleep 全注入，零真实等待）：
 
 ```bash
-cd reliable && PYTHONPATH=src python3 -m unittest discover -s tests
+python3 -m unittest discover -s tests
+# 或 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
 
 ## 状态机
@@ -70,7 +92,7 @@ cd reliable && PYTHONPATH=src python3 -m unittest discover -s tests
 1. **熔断判定看滑动窗口失败率，不看连续失败次数。** 连续 N 次失败的策略对"偶发抖动 + 低流量"过于迟钝、对"突发风暴"过于敏感；窗口失败率对两者都稳。
 2. **重试带 ±jitter 抖动。** 无抖动的固定退避会让大量客户端同步重试——重试风暴是这套库防御的第一目标，所以抖动默认开启。
 3. **熔断期间走降级回调而不是干等。** `on_open` 让你在下游瘫痪时仍有产出（缓存/简化模型/默认值），错误被转化为降级结果。
-4. **HALF_OPEN 不设并发名额闸门。** 名额在探针调用挂死时会死锁在 half_open——这类"idle 探测假阳性/状态卡死"的坑来自真实故障复盘（详见项目 blog），v0.1 用"连续成功 N 次闭合"的简单语义换正确性。
+4. **HALF_OPEN 不设并发名额闸门。** 名额在探针调用挂死时会死锁在 half_open——这类"idle 探测假阳性/状态卡死"的坑来自真实故障复盘（下游静默卡死、探针挂死），v0.1 用"连续成功 N 次闭合"的简单语义换正确性。
 
 ## 已知限制（v0.1）
 
