@@ -13,7 +13,7 @@
 
 设计取舍：server 内用进程内字典保存命名熔断器（单实例、线程安全由
 CircuitBreaker 自身保证）。多副本场景需要共享状态时，把 _BREAKERS 换成
-Redis/etcd 后端即可——这点和 Armada 里"故障库可插拔存储"是同构的。
+Redis/etcd 后端即可——这点与"可插拔存储后端"的设计原则同构。
 """
 
 from __future__ import annotations
