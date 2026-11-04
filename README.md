@@ -101,13 +101,13 @@ python3 -m unittest discover -s tests
 
 ## 路线图
 
-- [x] **W2**：包成 MCP server，投 mcp.so / Smithery（见下）
+- [x] MCP server（已发布，见下）
 - [ ] asyncio 原生版（真取消，不放弃等待）
 - [ ] TypeScript 版（同 API 语义）
 - [ ] 指标导出：每次调用的耗时 / 尝试次数 / 熔断状态变化（可观测性对接）
 - [ ] 预算熔断（token / 成本上限，共享同一熔断内核）
 
-## MCP Server（W2）
+## MCP Server
 
 把库里的容错原语暴露成 LLM Agent 可直接调用的 MCP 工具，适合"Agent 要调很多 LLM/HTTP 下游、又不想自己重写熔断"的场景。
 
@@ -125,20 +125,7 @@ pip install -e ".[mcp]"
 python -m reliable.mcp          # 或安装后直接用 reliable-mcp
 ```
 
-**上架到 mcp.so / Smithery（仓库根已备齐文件）：**
-
-| 文件 | 给谁 | 作用 |
-|---|---|---|
-| `mcp.json` | mcp.so | 声明 `reliable-mcp` 启动命令与 stdio transport |
-| `smithery.yaml` | Smithery | 元数据 + 容器 stdio 启动配置 |
-| `.mcp.json` | Smithery 扫描器 / Claude Desktop | `{ mcpServers: { reliable: { command: "python", args: ["-m","reliable.mcp"] } } }` |
-| `Dockerfile` | Smithery | 容器构建（Smithery 云端以容器跑 stdio server，缺它会部署失败） |
-
-**提交步骤：**
-1. 给仓库加 GitHub Topics（Settings → Topics）：`mcp-server` `model-context-protocol` `python` `llm` `circuit-breaker` `retry` `resilience` `agent`。
-2. **mcp.so**：打开 https://mcp.so → Add Server → 粘贴 `https://github.com/GravityWell8/reliable` → 等社区审核。
-3. **Smithery**：打开 https://smithery.ai → Submit server → 粘贴同一仓库 URL，扫描器自动校验上面 4 个文件。
-4. 首发文案（Twitter/X 线程 + HN Show HN + 发布检查清单）在 **[`LAUNCH.md`](LAUNCH.md)**，统一锚定一句话差异点：**"给 Agent 的每次下游调用默认带上重试风暴防护，而不是裸 retry。"**
+**Manifest 文件（仓库根，供自托管 / 注册表提交）：** `mcp.json`（mcp.so）、`smithery.yaml` + `.mcp.json` + `Dockerfile`（Smithery 容器构建）。
 
 > 状态保存在 server 进程内的 `_BREAKERS` 字典（单实例、线程安全由 `CircuitBreaker` 保证）。多副本需要共享状态时，把 `_BREAKERS` 换成 Redis/etcd 后端即可——这点与"可插拔存储后端"的设计原则同构。
 

@@ -14,3 +14,6 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# 本地发布剧本（含发布文案/检查清单，不提交公开仓库）
+LAUNCH.md
