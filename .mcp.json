@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "reliable": {
+      "command": "python",
+      "args": ["-m", "reliable.mcp"],
+      "env": {}
+    }
+  }
+}

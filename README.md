@@ -125,10 +125,20 @@ pip install -e ".[mcp]"
 python -m reliable.mcp          # 或安装后直接用 reliable-mcp
 ```
 
-**接入 mcp.so / Smithery：**
-1. 在仓库根加 `mcp.json`（声明 `reliable-mcp` 启动命令与 stdio transport）。
-2. 推到 GitHub 后，在 mcp.so 或 Smithery 用仓库 URL 一键上架。
-3. 上架文案主打一句话差异点：**"给 Agent 的每次下游调用默认带上重试风暴防护，而不是裸 retry。"**
+**上架到 mcp.so / Smithery（仓库根已备齐文件）：**
+
+| 文件 | 给谁 | 作用 |
+|---|---|---|
+| `mcp.json` | mcp.so | 声明 `reliable-mcp` 启动命令与 stdio transport |
+| `smithery.yaml` | Smithery | 元数据 + 容器 stdio 启动配置 |
+| `.mcp.json` | Smithery 扫描器 / Claude Desktop | `{ mcpServers: { reliable: { command: "python", args: ["-m","reliable.mcp"] } } }` |
+| `Dockerfile` | Smithery | 容器构建（Smithery 云端以容器跑 stdio server，缺它会部署失败） |
+
+**提交步骤：**
+1. 给仓库加 GitHub Topics（Settings → Topics）：`mcp-server` `model-context-protocol` `python` `llm` `circuit-breaker` `retry` `resilience` `agent`。
+2. **mcp.so**：打开 https://mcp.so → Add Server → 粘贴 `https://github.com/GravityWell8/reliable` → 等社区审核。
+3. **Smithery**：打开 https://smithery.ai → Submit server → 粘贴同一仓库 URL，扫描器自动校验上面 4 个文件。
+4. 首发文案（Twitter/X 线程 + HN Show HN + 发布检查清单）在 **[`LAUNCH.md`](LAUNCH.md)**，统一锚定一句话差异点：**"给 Agent 的每次下游调用默认带上重试风暴防护，而不是裸 retry。"**
 
 > 状态保存在 server 进程内的 `_BREAKERS` 字典（单实例、线程安全由 `CircuitBreaker` 保证）。多副本需要共享状态时，把 `_BREAKERS` 换成 Redis/etcd 后端即可——和 Armada 里"故障库可插拔存储"同构。
 

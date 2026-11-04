@@ -1,0 +1,31 @@
+name: reliable
+displayName: Reliable
+description: >-
+  Resilient LLM/Agent calls over MCP. Named circuit breakers, timeout + jitter
+  backoff, and a retry-storm guard on by default — so your Agent stops hammering
+  a downstream that is already down.
+version: 0.1.0
+author: GravityWell8
+homepage: https://github.com/GravityWell8/reliable
+license: MIT
+categories:
+  - tools
+  - developer-tools
+tags:
+  - llm
+  - circuit-breaker
+  - retry
+  - resilience
+  - agent
+  - mcp
+runtime:
+  type: container
+  build:
+    dockerfile: Dockerfile
+    dockerBuildPath: .
+startCommand:
+  type: stdio
+  command: python
+  args:
+    - -m
+    - reliable.mcp
