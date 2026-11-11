@@ -1,6 +1,6 @@
 {
   "name": "reliable",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Resilient LLM/Agent calls over MCP: named circuit breakers, timeout+backoff HTTP calls, retry-storm guard by default.",
   "transport": "stdio",
   "command": "reliablekit",
