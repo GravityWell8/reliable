@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
 [![Status](https://img.shields.io/badge/status-v0.1--alpha-orange.svg)](https://github.com/GravityWell8/reliable)
+<!-- mcp-name: io.github.gravitywell8/reliable -->
 
 **给谁**：调 LLM/Agent API 的 Python 开发者。
 **解决什么**：超时、限流、偶发 5xx 把 Agent 搞挂；naive retry 引发重试风暴；下游已经瘫了还在持续被打。

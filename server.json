@@ -1,0 +1,12 @@
+{
+  "name": "io.github.gravitywell8/reliable",
+  "description": "Resilient LLM/Agent calls over MCP: named circuit breakers, timeout + jitter backoff HTTP calls, retry-storm guard by default.",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registry_type": "pypi",
+      "identifier": "reliable",
+      "version": "0.1.0"
+    }
+  ]
+}
