@@ -14,16 +14,20 @@
 ## 安装
 
 ```bash
-# 方式一：可编辑安装（推荐，装完任意位置都能 import）
+# 从 PyPI 安装（发布名 reliablekit，import 名仍为 reliable）
+pip install reliablekit
+python3 -m reliable.demo   # 需先 pip install -e . 或本地运行 examples/demo.py
+
+# 本地开发：可编辑安装（推荐）
 pip install -e .
 python3 examples/demo.py
 python3 -m unittest discover -s tests
 
-# 方式二：不安装，直接用 PYTHONPATH 指向 src（从仓库根目录运行）
+# 不安装，直接用 PYTHONPATH 指向 src（从仓库根目录运行）
 PYTHONPATH=src python3 examples/demo.py
 ```
 
-> 暂未发布到 PyPI；`pip install reliable` 会装到同名其他包，请勿使用。
+> 发布名是 `reliablekit`（PyPI 不允许 `reliable`，因与已存在的 `reliability` 太像被防 typosquat 规则拦截）；导入时仍用 `import reliable`。
 
 ## 快速开始
 
