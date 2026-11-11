@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
-[![Status](https://img.shields.io/badge/status-v0.1--alpha-orange.svg)](https://github.com/GravityWell8/reliable)
+[![Status](https://img.shields.io/badge/status-v0.1.2-blue.svg)](https://github.com/GravityWell8/reliable)
 <!-- mcp-name: io.github.gravitywell8/reliable -->
 
 **给谁**：调 LLM/Agent API 的 Python 开发者。
@@ -126,8 +126,8 @@ python3 -m unittest discover -s tests
 **运行（stdio，供 Claude Desktop / Cursor 等 MCP 客户端接入）：**
 
 ```bash
-pip install -e ".[mcp]"
-python -m reliable.mcp          # 或安装后直接用 reliable-mcp
+pip install -e .                # mcp 已为核心依赖，无需 [mcp] extra
+python -m reliable.mcp          # 或安装后直接用 reliablekit（与官方 Registry 命令一致）
 ```
 
 **Manifest 文件（仓库根，供注册表提交 / 自托管）：** `mcp.json`、`.mcp.json`，以及可复用的 `smithery.yaml` + `Dockerfile`（供需要容器构建的注册表）。

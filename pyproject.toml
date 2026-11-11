@@ -4,19 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reliablekit"
-version = "0.1.0"
+version = "0.1.2"
 description = "Reliable LLM/Agent calls: timeout + exponential backoff + sliding-window circuit breaker, with retry-storm protection as a first-class citizen."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Hou Congcong" }]
 keywords = ["llm", "retry", "circuit-breaker", "resilience", "agent"]
+dependencies = ["mcp>=1.2.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[project.optional-dependencies]
-mcp = ["mcp>=1.2.0"]
-
 [project.scripts]
+reliablekit = "reliable.mcp:main"
 reliable-mcp = "reliable.mcp:main"

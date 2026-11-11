@@ -1,12 +1,17 @@
 {
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.gravitywell8/reliable",
-  "description": "Resilient LLM/Agent calls over MCP: named circuit breakers, timeout + jitter backoff HTTP calls, retry-storm guard by default.",
-  "version": "0.1.0",
+  "description": "Resilient LLM/Agent calls via MCP: circuit breakers, timeout, jitter backoff, retry-storm guard.",
+  "version": "0.1.2",
   "packages": [
     {
-      "registry_type": "pypi",
+      "registryType": "pypi",
       "identifier": "reliablekit",
-      "version": "0.1.0"
+      "version": "0.1.2",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      }
     }
   ]
 }
