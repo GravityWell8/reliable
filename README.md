@@ -118,14 +118,14 @@ python3 -m unittest discover -s tests
 - 资源 `reliable://breaker/{name}`：熔断器的实时 stats。
 - 提示 `diagnose_breaker`：根据状态生成健康诊断 prompt。
 
-**运行（stdio，供 Claude Desktop / mcp.so / Smithery 接入）：**
+**运行（stdio，供 Claude Desktop / Cursor 等 MCP 客户端接入）：**
 
 ```bash
 pip install -e ".[mcp]"
 python -m reliable.mcp          # 或安装后直接用 reliable-mcp
 ```
 
-**Manifest 文件（仓库根，供自托管 / 注册表提交）：** `mcp.json`（mcp.so）、`smithery.yaml` + `.mcp.json` + `Dockerfile`（Smithery 容器构建）。
+**Manifest 文件（仓库根，供注册表提交 / 自托管）：** `mcp.json`、`.mcp.json`，以及可复用的 `smithery.yaml` + `Dockerfile`（供需要容器构建的注册表）。
 
 > 状态保存在 server 进程内的 `_BREAKERS` 字典（单实例、线程安全由 `CircuitBreaker` 保证）。多副本需要共享状态时，把 `_BREAKERS` 换成 Redis/etcd 后端即可——这点与"可插拔存储后端"的设计原则同构。
 
