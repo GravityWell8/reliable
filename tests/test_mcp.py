@@ -41,6 +41,25 @@ class TestMcpSkeleton(unittest.TestCase):
         out = get_breaker_state("does-not-exist")
         self.assertIn("error", out)
 
+    def test_every_tool_declares_output_schema(self):
+        """返回类型必须是 TypedDict/Pydantic，否则 MCP 协议里没有 outputSchema。"""
+        tools = asyncio.run(mcp_server.mcp.list_tools())
+        self.assertTrue(tools)
+        for t in tools:
+            with self.subTest(tool=t.name):
+                schema = t.output_schema
+                self.assertIsNotNone(schema, f"{t.name} 缺少 outputSchema")
+                self.assertEqual(schema.get("type"), "object")
+                self.assertTrue(schema.get("properties"), f"{t.name} 的 outputSchema 没有字段")
+
+    def test_required_fields_match_actual_returns(self):
+        """required 只应包含恒存在的字段，别把分支字段标成必需。"""
+        tools = {t.name: t for t in asyncio.run(mcp_server.mcp.list_tools())}
+        self.assertEqual(tools["create_breaker"].output_schema["required"], ["name", "created"])
+        self.assertEqual(tools["get_breaker_state"].output_schema["required"], ["name"])
+        self.assertEqual(tools["compute_backoff"].output_schema["required"], ["attempt", "delay"])
+        self.assertEqual(tools["reliable_http_call"].output_schema["required"], ["ok", "breaker"])
+
 
 if __name__ == "__main__":
     unittest.main()

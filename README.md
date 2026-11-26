@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
-[![Status](https://img.shields.io/badge/status-v0.1.2-blue.svg)](https://github.com/GravityWell8/reliable)
+[![Status](https://img.shields.io/badge/status-v0.1.4-blue.svg)](https://github.com/GravityWell8/reliable)
 <!-- mcp-name: io.github.GravityWell8/reliable -->
 
 **给谁**：调 LLM/Agent API 的 Python 开发者。
@@ -16,12 +16,11 @@
 ```bash
 # 从 PyPI 安装（发布名 reliablekit，import 名仍为 reliable）
 pip install reliablekit
-python3 -m reliable.demo   # 需先 pip install -e . 或本地运行 examples/demo.py
 
 # 本地开发：可编辑安装（推荐）
 pip install -e .
 python3 examples/demo.py
-python3 -m unittest discover -s tests
+python3 -m pytest -q          # 或 python3 -m unittest discover -s tests
 
 # 不安装，直接用 PYTHONPATH 指向 src（从仓库根目录运行）
 PYTHONPATH=src python3 examples/demo.py
@@ -99,7 +98,7 @@ python3 -m unittest discover -s tests
 3. **熔断期间走降级回调而不是干等。** `on_open` 让你在下游瘫痪时仍有产出（缓存/简化模型/默认值），错误被转化为降级结果。
 4. **HALF_OPEN 不设并发名额闸门。** 名额在探针调用挂死时会死锁在 half_open——这类"idle 探测假阳性/状态卡死"的坑来自真实故障复盘（下游静默卡死、探针挂死），v0.1 用"连续成功 N 次闭合"的简单语义换正确性。
 
-## 已知限制（v0.1）
+## 已知限制
 
 - `timeout` 语义是"放弃等待"：底层线程仍在运行，生产上请配合 HTTP 客户端自身超时。
 - 仅支持同步函数；asyncio 原生版在路线图。
@@ -123,12 +122,34 @@ python3 -m unittest discover -s tests
 - 资源 `reliable://breaker/{name}`：熔断器的实时 stats。
 - 提示 `diagnose_breaker`：根据状态生成健康诊断 prompt。
 
-**运行（stdio，供 Claude Desktop / Cursor 等 MCP 客户端接入）：**
+**接入（stdio，供 Claude Desktop / Cursor / Codex 等 MCP 客户端）：**
+
+官方 MCP Registry 名：`io.github.GravityWell8/reliable`。装好后一条命令即可运行（无需 clone 仓库）：
 
 ```bash
-pip install -e .                # mcp 已为核心依赖，无需 [mcp] extra
-python -m reliable.mcp          # 或安装后直接用 reliablekit（与官方 Registry 命令一致）
+uvx reliablekit          # 或 pip install reliablekit && reliablekit
 ```
+
+粘进客户端配置（Claude Desktop / Cursor 通用）：
+
+```json
+{
+  "mcpServers": {
+    "reliable": {
+      "command": "uvx",
+      "args": ["reliablekit"]
+    }
+  }
+}
+```
+
+命令行客户端：
+
+```bash
+claude mcp add --transport stdio reliable -- uvx reliablekit
+```
+
+**每个工具都声明了 `outputSchema`**（返回结构 + 分支字段），Agent 不需要猜返回格式，也少了工具投毒面。
 
 **Manifest 文件（仓库根，供注册表提交 / 自托管）：** `mcp.json`、`.mcp.json`，以及可复用的 `smithery.yaml` + `Dockerfile`（供需要容器构建的注册表）。
 
