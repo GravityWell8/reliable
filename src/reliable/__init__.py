@@ -14,4 +14,14 @@ __all__ = [
     "reliable",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.5"
+try:  # 让版本号跟随已安装的分发包，避免和 pyproject 漂移
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _dist_version
+
+    try:
+        __version__ = _dist_version("reliablekit")
+    except PackageNotFoundError:  # 源码目录直接运行时没有元数据
+        pass
+except Exception:  # pragma: no cover - 极老环境
+    pass

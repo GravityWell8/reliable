@@ -1,15 +1,15 @@
 # reliable
 
-> Python resilience for LLM/Agent calls — timeout + jitter backoff + sliding-window circuit breaker + fallback. Built to stop retry storms.
+> Python resilience for LLM/Agent calls — timeout + jitter backoff + sliding-window circuit breaker + fallback. Sync and async. Built to stop retry storms.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
-[![Status](https://img.shields.io/badge/status-v0.1.4-blue.svg)](https://github.com/GravityWell8/reliable)
+[![Status](https://img.shields.io/badge/status-v0.1.5-blue.svg)](https://github.com/GravityWell8/reliable)
 <!-- mcp-name: io.github.GravityWell8/reliable -->
 
 **给谁**：调 LLM/Agent API 的 Python 开发者。
 **解决什么**：超时、限流、偶发 5xx 把 Agent 搞挂；naive retry 引发重试风暴；下游已经瘫了还在持续被打。
-**怎么用**：一个装饰器，把任意同步函数包上超时 + 指数退避 + 滑动窗口熔断 + 降级回调。
+**怎么用**：一个装饰器，把 `def` 或 `async def` 函数包上超时 + 指数退避 + 滑动窗口熔断 + 降级回调。
 
 ## 安装
 
@@ -52,17 +52,30 @@ def call_llm(prompt: str) -> str:
     ...
 ```
 
-跑 demo（完整状态机流转，约 4 秒）：
+异步函数同一个装饰器，自动分流（`AsyncOpenAI` / `AsyncAnthropic` / LangGraph 这类客户端）：
 
-```bash
-python3 examples/demo.py          # 已 pip install -e . 时
-# 或 PYTHONPATH=src python3 examples/demo.py
+```python
+@reliable(breaker=breaker, timeout=8.0, max_attempts=5)
+async def acall_llm(prompt: str) -> str:
+    ...   # 超时走 asyncio.wait_for，是"真取消"，不会留幽灵任务
+
+print(await acall_llm("hi"))
 ```
 
-跑测试（19 个用例，时钟/sleep 全注入，零真实等待）：
+> **为什么 async 单列一节**：0.1.4 及以前，`async def` 被同步装饰器包住时只会拿到一个 coroutine 对象，既不 `await` 也不抛异常 → 被记成**成功** → 熔断器永远看到失败率 `0.00`、永不熔断。等于对异步调用零保护还谎报健康。0.1.5 起按函数类型自动分流，并对"同步函数却返回协程"显式报 `TypeError`，堵住第二类静默失效。
+
+跑 demo：
 
 ```bash
-python3 -m unittest discover -s tests
+python3 examples/demo.py          # 同步：完整状态机流转（closed→open→降级→half-open→closed）
+python3 examples/demo_async.py    # 异步：重试 + 熔断 + 超时真取消
+# 或 PYTHONPATH=src python3 examples/demo_async.py
+```
+
+跑测试（39 个用例，时钟/sleep 全注入，零真实等待）：
+
+```bash
+python3 -m pytest -q
 # 或 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
 
@@ -86,7 +99,7 @@ python3 -m unittest discover -s tests
 
 | 名称 | 说明 |
 |---|---|
-| `reliable(fn=None, *, breaker, timeout, max_attempts, base_delay, factor, jitter, sleep, rng, on_open)` | 装饰器 / 包装函数，支持 `@reliable` 与 `@reliable(...)` |
+| `reliable(fn=None, *, breaker, timeout, max_attempts, base_delay, factor, jitter, sleep, async_sleep, rng, on_open)` | 装饰器 / 包装函数；自动识别 sync / async，支持 `@reliable` 与 `@reliable(...)` |
 | `CircuitBreaker(failure_rate, window, cooldown, probe, clock, rng)` | 滑动窗口熔断器，线程安全，时钟/随机源可注入 |
 | `exp_backoff(attempt, base, factor, jitter, rng)` | 指数退避 + 抖动计算 |
 | `CircuitOpenError(retry_after=...)` | 熔断期调用抛出，携带剩余冷却秒数 |
@@ -100,13 +113,14 @@ python3 -m unittest discover -s tests
 
 ## 已知限制
 
-- `timeout` 语义是"放弃等待"：底层线程仍在运行，生产上请配合 HTTP 客户端自身超时。
-- 仅支持同步函数；asyncio 原生版在路线图。
+- **同步函数的 `timeout` 是"放弃等待"**：底层线程仍在运行，生产上请配合 HTTP 客户端自身超时。
+- **异步函数的 `timeout` 是真取消**（`asyncio.wait_for` 会向协程抛 `CancelledError`），语义更干净。
+- `asyncio.CancelledError` 不会被当成失败重试——外层任务被取消时直接向上传播，这是刻意的。
 
 ## 路线图
 
 - [x] MCP server（已发布，见下）
-- [ ] asyncio 原生版（真取消，不放弃等待）
+- [x] asyncio 原生版（真取消，不放弃等待）
 - [ ] TypeScript 版（同 API 语义）
 - [ ] 指标导出：每次调用的耗时 / 尝试次数 / 熔断状态变化（可观测性对接）
 - [ ] 预算熔断（token / 成本上限，共享同一熔断内核）
